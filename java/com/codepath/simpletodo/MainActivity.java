@@ -9,11 +9,8 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import org.apache.commons.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ArrayList<String> todoItems;
@@ -22,30 +19,26 @@ public class MainActivity extends AppCompatActivity {
     EditText etEditText;
 
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        populateArrayItems();
 
-        //todoItems = new ArrayList<>();
-        //itemsAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,todoItems );
+        todoItems = new ArrayList<>();
+        populateFromSql();
 
-        //todoItems.add("First Item");
-        //todoItems.add("Second Item");
-       // setupListviewListener();
         lvItems = (ListView) findViewById(R.id.lvItems);
         lvItems.setAdapter(itemsAdapter);
         etEditText = (EditText) findViewById(R.id.etEditText);
+
         lvItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                String delItem= todoItems.get(position);
                 todoItems.remove(position);
                 itemsAdapter.notifyDataSetChanged();
-                writeItems();
+                deleteRow(delItem);
                 return true;
             }
         });
@@ -54,21 +47,38 @@ public class MainActivity extends AppCompatActivity {
                  @Override
                  public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                      String item;
-                     //String itemPosition;
                      item = (String)lvItems.getItemAtPosition(position);
-                     //itemPosition = todoItems.get(position);
+
                      Integer itemHash = position;
                      launchAnother(item,itemHash);
                  }
         });
 
+    }
 
 
+    private void populateFromSql() {
+        // Get singleton instance of database
+        TasksDatabaseHelper databaseHelper = TasksDatabaseHelper.getInstance(this);
 
+        // Get all posts from database
+        List<Post> posts = databaseHelper.getAllPosts();
 
-       // lvItems.setOnItemLongClickListener(
-         //       new AdapterView.OnItemLongClickListener(){
+        int taskSize = posts.size();
 
+        String test;
+
+       for(int l=0; l<taskSize; l++){
+             try {
+                  test = posts.get(l).text;
+                  todoItems.add(test);
+
+             } catch (Exception e){
+
+             }
+
+        }
+        itemsAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,todoItems );
 
     }
 
@@ -78,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("item_value",item);
         intent.putExtra("item_position", itemPosition);
         //Toast.makeText(this, "you selected " + item + " " + itemPosition, Toast.LENGTH_SHORT).show();
-
-        //startActivity(intent);
         startActivityForResult(intent,REQUEST_CODE);
     }
 
@@ -93,65 +101,48 @@ public class MainActivity extends AppCompatActivity {
             //String returnText = data.getStringExtra("return_item_value");
             //Integer returnId = data.getIntExtra("return_item_id",-1);
             //Toast.makeText(this, "you selected " + returnId + " " + returnText, Toast.LENGTH_SHORT).show();
+            String oldItem = todoItems.get(returnId);
             todoItems.set(returnId, returnText);
             itemsAdapter.notifyDataSetChanged();
-            writeItems();
+            updateRow(returnId, oldItem, returnText);
         }
     }
 
-
-    public void populateArrayItems(){
-        //todoItems = new ArrayList<>();
-        //todoItems.add("First Item");
-        //todoItems.add("Second Item");
-        readItems();
-        itemsAdapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,todoItems );
-    }
-
-
-
-    private void readItems() {
-        File filesDir = getFilesDir();
-        File file = new File(filesDir, "todo.txt");
-        try {
-            todoItems = new ArrayList<String>(FileUtils.readLines(file));
-        } catch (IOException e) {
-          //  e.printStackTrace();
-        }
-    }
-
-    private void writeItems() {
-        File filesDir = getFilesDir();
-        File file = new File(filesDir, "todo.txt");
-        try {
-            FileUtils.writeLines(file, todoItems);
-        } catch (IOException e) {
-            //  e.printStackTrace();
-        }
-    }
 
     public void onAddItem(View v) {
-       // EditText etNewItem = (EditText) findViewById(R.id.etAddItem);
-        //String itemText = etNewItem.getText().toString();
-        //itemsAdapter.add(itemText);
+
         itemsAdapter.add(etEditText.getText().toString());
-        //etNewItem.setText("");
+        writeToTable();
 
         etEditText.setText("");
-        writeItems();
+        itemsAdapter.notifyDataSetChanged();
     }
 
-   // Public void setupListviewListener() {
-    //    lvItems.setOnItemLongClickListener(
-      //          new AdapterView.OnItemLongClickListener(){
+    private void writeToTable() {
+        Post samplePost = new Post();
+        samplePost.text = etEditText.getText().toString();
 
-        //    @Override
+        // Get singleton instance of database
+        TasksDatabaseHelper databaseHelper = TasksDatabaseHelper.getInstance(this);
 
+        // Add post to the database
+        databaseHelper.addPost(samplePost);
 
+    }
 
+    private void deleteRow(String removeItem){
+        // Get singleton instance of database
+        TasksDatabaseHelper databaseHelper = TasksDatabaseHelper.getInstance(this);
+        databaseHelper.delete(removeItem);
+    }
 
-        //}
+    private void updateRow(int taskId, String oldTask, String taskText){
 
-    //}
+        // Get singleton instance of database
+        TasksDatabaseHelper databaseHelper = TasksDatabaseHelper.getInstance(this);
+        databaseHelper.updateTask(taskId,oldTask, taskText);
+        //Toast.makeText(this, "you wrote " +oldTask + " " + taskText + " to table " , Toast.LENGTH_SHORT).show();
+    }
+
 
 }
