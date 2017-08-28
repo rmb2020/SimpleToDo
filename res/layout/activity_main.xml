@@ -12,7 +12,7 @@
 
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -40,6 +40,17 @@
         android:layout_marginLeft="11dp"
         android:layout_marginStart="11dp"
         android:id="@+id/etEditText"
-        android:layout_toStartOf="@+id/btnAddItem"
+
         android:hint="@string/add_item" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/spinPriority"
+        android:layout_alignTop="@+id/etEditText"
+        android:layout_toLeftOf="@+id/btnAddItem"
+        android:layout_toRightOf="@+id/etEditText"
+        android:layout_toEndOf="@+id/etEditText" />
+
 </RelativeLayout>

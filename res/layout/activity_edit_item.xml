@@ -24,16 +24,23 @@
         android:id="@+id/mlEditText"
         android:hint="@string/edit_item" />
 
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="13dp"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="46dp"
+        android:id="@+id/editSpinner"
+        android:layout_below="@+id/mlEditText" />
+
     <Button
         android:text="@string/save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="41dp"
+        android:layout_marginTop="34dp"
         android:id="@+id/btnSaveItem"
         android:onClick="onEditItem"
-        android:layout_below="@+id/mlEditText"
+        android:layout_below="@+id/editSpinner"
         android:layout_alignLeft="@+id/mlEditText"
         android:layout_alignStart="@+id/mlEditText" />
 </RelativeLayout>
