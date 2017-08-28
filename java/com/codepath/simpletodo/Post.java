@@ -6,4 +6,7 @@ package com.codepath.simpletodo;
 
 public class Post {
     public String text;
+    //public int dueDate;
+    public int priority;
+
 }

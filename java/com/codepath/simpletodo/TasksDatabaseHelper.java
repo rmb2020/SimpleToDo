@@ -19,7 +19,7 @@ import static android.content.ContentValues.TAG;
 public class TasksDatabaseHelper extends SQLiteOpenHelper {
     // Database Info
     private static final String DATABASE_NAME = "tasksDatabase";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Table Names
     private static final String TABLE_TASKS = "tasks";
@@ -29,6 +29,9 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_TASK_ID = "id";
     //private static final String KEY_POST_USER_ID_FK = "userId";
     private static final String KEY_TASK_TEXT = "text";
+    //private static final String KEY_TASK_DATE = "dueDate";
+    private static final String KEY_TASK_PRIORITY = "priority";
+
 
     private static TasksDatabaseHelper sInstance;
 
@@ -67,7 +70,9 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
                 KEY_TASK_ID + " INTEGER PRIMARY KEY," +
                 // Define a primary key
                 //KEY_POST_USER_ID_FK + " INTEGER REFERENCES " + TABLE_USERS + "," + // Define a foreign key
-                KEY_TASK_TEXT + " TEXT" +
+                KEY_TASK_TEXT + " TEXT " +
+               // KEY_TASK_DATE + " INTEGER" +
+                KEY_TASK_PRIORITY + " INTEGER" +
                 ")";
 
 
@@ -83,6 +88,8 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
             // Simplest implementation is to drop all old tables and recreate them
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_TASKS);
             onCreate(db);
+            //Log.d(TAG, "Error while trying to add task to database");
+
         }
     }
 
@@ -96,6 +103,8 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
 
             ContentValues values = new ContentValues();
             values.put(KEY_TASK_TEXT, post.text);
+            //values.put(KEY_TASK_TEXT, post.dueDate);
+            values.put(KEY_TASK_PRIORITY, post.priority);
 
             db.insertOrThrow(TABLE_TASKS, null, values);
             db.setTransactionSuccessful();
@@ -106,22 +115,30 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public long updateTask(int taskId, String existingTask, String task ) {
+    public long updateTask(long taskId, String task, int iPriority ) {
 
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_TASK_TEXT, task);
+        values.put(KEY_TASK_PRIORITY, iPriority);
 
-        return db.update(TABLE_TASKS, values, KEY_TASK_TEXT + "=?", new String[]{existingTask} );
+        //return db.update(TABLE_TASKS, values, KEY_TASK_TEXT + "=?", new String[]{existingTask} );
+        return db.update(TABLE_TASKS, values, "rowid" + "=" + taskId, null );
     }
 
-    public long delete(String deleteText){
+    /*public long delete(String deleteText){
         SQLiteDatabase db = getWritableDatabase();
         return db.delete(TABLE_TASKS,KEY_TASK_TEXT + "=?",new String[]{deleteText});
+    }*/
+
+    //Delete row for a rowid
+    public long delete(Long rId){
+        SQLiteDatabase db = getWritableDatabase();
+        return db.delete(TABLE_TASKS,"rowid=" + rId,null);
     }
 
 
-    // Get all posts in the database
+    // Get all posts in the database. No longer using this method.
    // public List<Post> Posts;
     public List<Post> getAllPosts() {
         // somehow List<Post> poats = new ArrayList didn't work. But declaration and alue assignment when separated worked.
@@ -129,7 +146,6 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
         posts = new ArrayList<>();
 
         String POSTS_SELECT_QUERY = "SELECT * FROM " + TABLE_TASKS;
-        //String POSTS_SELECT_QUERY = "SELECT " + KEY_TASK_TEXT + " FROM " + TABLE_TASKS;
 
         // "getReadableDatabase()" and "getWriteableDatabase()" return the same object (except under low
         // disk space scenarios)
@@ -152,6 +168,21 @@ public class TasksDatabaseHelper extends SQLiteOpenHelper {
         }
         return posts;
     }
+
+    public Cursor selectAll() {
+        // This is for custom adapter.
+
+        //Cursor adapter needs _id column.
+        String POSTS_SELECT_QUERY = "SELECT id _id,* FROM " + TABLE_TASKS;
+
+        //String POSTS_SELECT_QUERY = "SELECT " + KEY_TASK_TEXT + " FROM " + TABLE_TASKS;
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(POSTS_SELECT_QUERY, null);
+
+        return cursor;
+    }
+
 
 
     // Delete all posts and users in the database
